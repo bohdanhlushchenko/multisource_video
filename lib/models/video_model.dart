@@ -13,8 +13,6 @@ class VideoModel {
 
   const VideoModel(this.title, this.author, this.imageUrl, this.aspectRatio, this.urls);
 
-  bool get isPortrait => aspectRatio < 1;
-
   factory VideoModel.fromYoutube(Video video, UnmodifiableListView<MuxedStreamInfo> muxed) {
     final urls = _sortQualityVideoUrls(
       muxed.map((e) => e.qualityLabel),

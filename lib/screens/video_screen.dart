@@ -15,40 +15,56 @@ class VideoScreen extends StatefulWidget {
 
 class _VideoScreenState extends State<VideoScreen> {
   final _playerKey = GlobalKey();
-  final _controller = MultiSourceVideoController(
-    url: 'https://vimeo.com/51106808',
-    source: VideoSource.vimeo,
-    configuration: const BetterPlayerConfiguration(handleLifecycle: false),
-  );
+  late final _controller = MultiSourceVideoController(
+    url: 'https://www.youtube.com/watch?v=FoMlSB6ftQg&list=PLIbLfYSA8ACNYCOaDWmj6EA1F1uS-pyVL&ab_channel=UnderseaStockFootage',
+    source: VideoSource.youtube,
+    configuration: const BetterPlayerConfiguration(handleLifecycle: false, expandToFill: false),
+  )..addEventsListener(_eventsListener);
   late final _player = BetterPlayer(key: _playerKey, controller: _controller);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Consumer<OverlayHandlerController>(
-            builder: (context, controller, child) {
-              if (controller.inPipMode) {
-                return const SizedBox.shrink();
-              } else {
-                return _player;
-              }
-            },
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Consumer<OverlayHandlerController>(
+                builder: (context, controller, child) {
+                  if (controller.inPipMode) {
+                    return const SizedBox.shrink();
+                  } else {
+                    if (_controller.isPortrait) {
+                      return Expanded(child: _player);
+                    } else {
+                      return _player;
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: _navigateToNextPage,
+                child: const Text('Go to next screen'),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          TextButton(
-            onPressed: _navigateToNextPage,
-            child: const Text('Go to next screen'),
-          ),
-        ],
+        ),
       ),
     );
   }
 
+  void _eventsListener(BetterPlayerEvent event) {
+    if (event.betterPlayerEventType == BetterPlayerEventType.initialized) {
+      setState(() {});
+    }
+  }
+
   Future<void> _navigateToNextPage() async {
     await _controller.pause();
+    _controller.setControlsEnabled(false);
     final overlayEntry = OverlayEntry(
       builder: (context) => VideoOverlayWidget(
         onClear: () {
@@ -67,6 +83,7 @@ class _VideoScreenState extends State<VideoScreen> {
     )
         .then((_) {
       Provider.of<OverlayHandlerController>(context, listen: false).removeOverlay(context);
+      _controller.setControlsEnabled(true);
     });
     await _controller.play();
   }

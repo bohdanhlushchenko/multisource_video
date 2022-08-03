@@ -23,7 +23,7 @@ class MultiSourceVideoController extends BetterPlayerController {
   final BetterPlayerConfiguration? configuration;
 
   double get aspectRatio => _aspectRatio;
-
+  bool get isPortrait => _aspectRatio < 1;
   double _aspectRatio = 1;
 
   Future<void> initDataSource() async {
@@ -31,6 +31,7 @@ class MultiSourceVideoController extends BetterPlayerController {
     _aspectRatio = videoModel.aspectRatio;
     final urls = videoModel.urls;
     final initialUrl = initialQuality != null ? (urls['p$initialQuality'] ?? urls.values.last) : urls.values.last;
+    super.setOverriddenAspectRatio(_aspectRatio);
     super.setupDataSource(
       BetterPlayerDataSource.network(
         initialUrl,
