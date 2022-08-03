@@ -22,8 +22,13 @@ class MultiSourceVideoController extends BetterPlayerController {
   final int? initialQuality;
   final BetterPlayerConfiguration? configuration;
 
+  double get aspectRatio => _aspectRatio;
+
+  double _aspectRatio = 1;
+
   Future<void> initDataSource() async {
     final videoModel = await _getVideoUrls(url, source);
+    _aspectRatio = videoModel.aspectRatio;
     final urls = videoModel.urls;
     final initialUrl = initialQuality != null ? (urls['p$initialQuality'] ?? urls.values.last) : urls.values.last;
     super.setupDataSource(

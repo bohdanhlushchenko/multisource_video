@@ -8,16 +8,20 @@ class VideoModel {
   final String title;
   final String author;
   final String imageUrl;
+  final double aspectRatio;
   final Map<String, String> urls;
 
-  const VideoModel(this.title, this.author, this.imageUrl, this.urls);
+  const VideoModel(this.title, this.author, this.imageUrl, this.aspectRatio, this.urls);
+
+  bool get isPortrait => aspectRatio < 1;
 
   factory VideoModel.fromYoutube(Video video, UnmodifiableListView<MuxedStreamInfo> muxed) {
     final urls = _sortQualityVideoUrls(
       muxed.map((e) => e.qualityLabel),
       muxed.map((e) => e.url.toString()),
     );
-    return VideoModel(video.title, video.author, video.thumbnails.standardResUrl, urls);
+    final aspectRatio = muxed.fold<double>(1, (p, e) => e.videoResolution.width / e.videoResolution.height);
+    return VideoModel(video.title, video.author, video.thumbnails.standardResUrl, aspectRatio, urls);
   }
 
   factory VideoModel.fromVimeo(Map<String, dynamic> json) {
@@ -27,10 +31,14 @@ class VideoModel {
       filteredVideoInfo.map((e) => e['quality'] as String),
       filteredVideoInfo.map((e) => e['url'] as String),
     );
+    final width = (json['video']['width'] as num? ?? 0).toDouble();
+    final height = (json['video']['height'] as num? ?? 0).toDouble();
+    final aspectRatio = width / height;
     return VideoModel(
       json['video']['title'] as String? ?? '',
       json['video']['owner']['name'] as String? ?? '',
       json['video']['thumbs']['base'] as String? ?? '',
+      aspectRatio,
       urls,
     );
   }
